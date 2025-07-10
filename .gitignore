@@ -1,0 +1,4 @@
+.DS_Store
+requests.http
+.env
+bin/
