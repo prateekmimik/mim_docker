@@ -1,6 +1,19 @@
-NETWORK_NAME=$1
-if [ -z "$NETWORK_NAME" ]; then
-  docker run -idt --name mimoe-new mimoe-new
+NETWORKNAME=$1
+PORTMAP=$2
+
+if [ -z "$PORTMAP" ]; then
+  PORTMAP=""
 else
-  docker run --network "$NETWORK_NAME" -idt --name mimoe-new mimoe-new
+  PORTMAP="-p $PORTMAP"
 fi
+
+RUNCMD=""
+echo "creating container"
+if [ -z "$NETWORKNAME" ]; then
+  RUNCMD="docker run -idt $PORTMAP --name mimoe-new mimoe-new"
+else
+  RUNCMD="docker run --network $NETWORKNAME -idt $PORTMAP --name mimoe-new mimoe-new"
+fi
+
+echo $RUNCMD
+eval $RUNCMD

@@ -7,7 +7,7 @@ const {
   host, midHost, clientId, developerIdToken, userProfileSystemApiKey,
 } = process.env;
 const rpcUrl = `http://${host}/jsonrpc/v1`;
-const midUrl = `http://${midHost}`;
+const midUrl = `https://${midHost}`;
 const baseUrl = `http://${host}/${clientId}`;
 const edgeImageUrl = `http://${host}/mcm/v1/images`;
 const edgeContainerUrl = `http://${host}/mcm/v1/containers`;
