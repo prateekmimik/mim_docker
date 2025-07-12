@@ -2,3 +2,4 @@
 requests.http
 .env
 bin/
+deploy/minsight-v1-1.4.0.tar

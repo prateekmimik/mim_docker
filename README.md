@@ -72,3 +72,50 @@ To build the starter-microservice, first `cd` into the respective folder, and ru
 From `cli-utils` following commands can be executed.
 - npx eslint . --fix
 - npx mocha test
+
+# Minsight Responses (wip)
+
+Following are minsight responses for local machine and docker container. This is being done to check if devices can see each other. Using `jq -r '.data[] | { id, url }'`, following are the expected responses. Presently, only single set is displayed, indicating that the devices cannot see each other.
+
+```json
+{
+  "id": "fb87d9cceb66b037c1b0d2ec786d5b9dcf9cb28e074027b614629444",
+  "url": "http://172.25.1.251:8083"
+}
+{
+  "id": "80730f6a7b113038c6cc0e021c7380d1d73489de41175483e6454292",
+  "url": "http://172.25.1.2:8083"
+}
+```
+
+## Port-Mapping
+
+As docker container is created with port-mapping (see `container.sh`) using the following command, the app instance can still be accessed from the local machine. So, even though minsight does not display all the running instances, they are still available on the same network, *using the custom docker bridge network*, which uses the same gateway address as the local machine.
+
+> docker run --network $NETWORKNAME -idt $PORTMAP --name mimoe-new mimoe-new
+
+<img src="./readme_img/app-multiple-instances.png" width=750 alt="multiple app instances on local machine" title="multiple app instances on local machine" style="border: 1px solid black"/>
+
+> **Note** 172.25.1.251 is the local machine address
+
+The above image shows two app instances:
+1. local app instance is accessed using port 8083
+2. first docker app instance is accessed using port 7083 (via port-mapping)
+
+> **Note** 172.25.1.251 is the local machine address
+
+## Curl Minsight
+
+For running on the local machine, to access local app instance, use the following command, settings.
+
+> ./curl_minsight.sh $edgeTokenLocal
+
+> CURLCMD="curl -s -H 'Authorization: Bearer $TOKEN' -H 'Content-Type: application/json' -X GET http://172.25.1.251:8083/4316d7b8-f114-4b5a-80d2-28b364b666a7/minsight/v1/nodes?ownerCode=626393e7-b6b2-4a72-893c-5da07b554250&type=network"
+
+For running on the local machine, to access docker app instance, use the following command, settings.
+
+> ./curl_minsight.sh $edgeTokenDocker
+
+> CURLCMD="curl -s -H 'Authorization: Bearer $TOKEN' -H 'Content-Type: application/json' -X GET http://172.25.1.251:7083/4316d7b8-f114-4b5a-80d2-28b364b666a7/minsight/v1/nodes?ownerCode=626393e7-b6b2-4a72-893c-5da07b554250&type=network"
+
+> **Note** edgeTokenLocal and edgeTokenDocker are respective edge tokens for mimOE app instances on local machine and docker container
