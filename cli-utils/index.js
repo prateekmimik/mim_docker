@@ -1,4 +1,5 @@
-require('dotenv').config({ path: '/app/.env' });
+const envAbsPath = '/app/.env';
+require('dotenv').config({ path: envAbsPath });
 const axios = require('axios');
 const fs = require('fs');
 const FormData = require('form-data');
@@ -8,19 +9,38 @@ const {
 } = process.env;
 const rpcUrl = `http://${host}/jsonrpc/v1`;
 const midUrl = `https://${midHost}`;
-const baseUrl = `http://${host}/${clientId}`;
 const edgeImageUrl = `http://${host}/mcm/v1/images`;
 const edgeContainerUrl = `http://${host}/mcm/v1/containers`;
+const deployAbsPath = '/app/deploy/';
 const tarImage = 'microservice-v1-1.0.3.tar';
 
 let edgeIdToken = null;
 let edgeToken = null;
 
-const authHeader = () => ({
+const updateEnv = (key, newValue) => {
+  let envContent = fs.readFileSync(envAbsPath, 'utf8').split('\n');
+  let updated = false;
+
+  envContent = envContent.map(line => {
+    if (line.startsWith(`${key}=`)) {
+      updated = true;
+      return `${key}=${newValue}`;
+    }
+    return line;
+  });
+  
+  if (!updated) {
+    envContent.push(`${key}=${newValue}`);
+  }
+
+  fs.writeFileSync(envAbsPath, envContent.join('\n'), 'utf8');
+};
+
+const authHeader = {
   headers: {
-    Authorization: `Bearer ${edgeToken}`,
+    Authorization: `Bearer ${process.env.edgeToken}`,
   },
-});
+};
 
 const getEdgeIdToken = async () => {
   const requestConfig = {
@@ -104,7 +124,7 @@ const associateTokenWithDevice = async () => {
 
 const deployImage = async () => {
   const formData = new FormData();
-  formData.append('image', fs.createReadStream(`./deploy/${tarImage}`));
+  formData.append('image', fs.createReadStream(`${deployAbsPath}${tarImage}`));
 
   const requestConfig = {
     method: 'POST',
@@ -119,11 +139,14 @@ const deployImage = async () => {
   try {
     const result = await axios(requestConfig);
     if (!result || !result.data) {
-      return null;
+      console.log('Error deploying image');
+    } else {
+      console.log('Image deployed successfully');
+      console.log(result.data);
     }
-    return result.data;
   } catch (error) {
-    return null;
+    console.log('Error deploying image');
+    console.log(error.response);
   }
 };
 
@@ -140,7 +163,10 @@ const startContainer = async () => {
       image: 'microservice-v1',
       env: {
         'MCM.BASE_API_PATH': '/microservice/v1',
-        API_KEY: userProfileSystemApiKey,
+        'API_KEY': userProfileSystemApiKey,
+        'MCM.API_ALIAS': 'true',
+        'MCM.WEBSOCKET_SUPPORT': 'true',
+        'MCM.DB_ENCRYPTION_SUPPORT': 'true'
       },
     },
   };
@@ -148,23 +174,34 @@ const startContainer = async () => {
   try {
     const result = await axios(requestConfig);
     if (!result || !result.data) {
-      return null;
+      console.log('Error starting container');
+    } else {
+      console.log('Container started successfully');
+      console.log(result.data);
     }
-    return result.data;
   } catch (error) {
-    return null;
+    console.log('Error starting container');
+    console.log(error.response);
   }
 };
 
 (async function () {
-  let result = await getEdgeIdToken();
-  if (result && result.result && result.result.id_token) {
-    edgeIdToken = result.result.id_token;
-    result = await getEdgeAccessToken();
-    if (result && result.access_token) {
-      edgeToken = result.access_token;
-      result = await associateTokenWithDevice();
-      console.log(result);
+  const args = process.argv.slice(2);
+  if (args.length > 0 && args[0] === 'deploy') {
+    await deployImage();
+    await startContainer();
+  } else {
+    let result = await getEdgeIdToken();
+    if (result && result.result && result.result.id_token) {
+      edgeIdToken = result.result.id_token;
+      updateEnv('edgeIdToken', edgeIdToken);
+      result = await getEdgeAccessToken();
+      if (result && result.access_token) {
+        edgeToken = result.access_token;
+        updateEnv('edgeToken', edgeToken);
+        result = await associateTokenWithDevice();
+        console.log(result);
+      }
     }
   }
 }());

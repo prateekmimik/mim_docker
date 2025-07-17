@@ -24,7 +24,6 @@ COPY bin/ ./bin/
 COPY cli-utils/ ./cli-utils/
 COPY deploy/ ./deploy/
 
-
 RUN chmod +x ./setup.sh
 
 CMD ["./setup.sh"]
