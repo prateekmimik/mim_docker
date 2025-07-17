@@ -1,11 +1,12 @@
-NETWORKNAME=$1
-PORTMAP=$2
+PORTMAP=$1
+NETWORKNAME=$2
 
 if [ -z "$PORTMAP" ]; then
-  PORTMAP=""
-else
-  PORTMAP="-p $PORTMAP"
+  echo "please provide port mapping (e.g. host_port:container_port)"
+  exit 1
 fi
+
+PORTMAP="-p $PORTMAP"
 
 RUNCMD=""
 echo "creating container"

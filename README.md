@@ -11,9 +11,9 @@ If image was already build, and container was already created, ensure clean-up u
 
 Following simple scripts can build a docker image, and create a container named `mimoe-new` on the local machine.
 - ./image.sh
-- ./container.sh (or ./container.sh bridge_172)
+- ./container.sh (or ./container.sh *portmap* *networkname*)
 
-> **Note** bridge_172 is the custom network name, it can be blank
+> **Note** *networkname* (e.g. bridge_172) is the custom network name, it can be blank
 
 ## Custom Bridge Network (wip)
 
@@ -106,16 +106,46 @@ The above image shows two app instances:
 
 ## Curl Minsight
 
-For running on the local machine, to access local app instance, use the following command, settings.
+Following section describes using curl script to run minsight.
+
+#### Local App Instance
+
+For running on the local machine, to access local app instance, use the following command.
 
 > ./curl_minsight.sh $edgeTokenLocal
 
-> CURLCMD="curl -s -H 'Authorization: Bearer $TOKEN' -H 'Content-Type: application/json' -X GET http://172.25.1.251:8083/4316d7b8-f114-4b5a-80d2-28b364b666a7/minsight/v1/nodes?ownerCode=626393e7-b6b2-4a72-893c-5da07b554250&type=network"
+Above command will internally call `curl` with the following options.
+
+```bash
+curl -s -H 'Authorization: Bearer $edgeTokenLocal' -H 'Content-Type: application/json' -X GET http://172.25.1.251:8083/4316d7b8-f114-4b5a-80d2-28b364b666a7/minsight/v1/nodes?ownerCode=626393e7-b6b2-4a72-893c-5da07b554250&type=network
+```
+
+- Sends an HTTP `GET` request to an API endpoint
+- Uses a bearer token for authorization (`Authorization: Bearer $edgeTokenLocal`)
+- Sets the content type to `application/json` via headers
+- Targets a specific IP address and port (`172.25.1.251:8083`)
+- Accesses the resource at `/minsight/v1/nodes`
+- Filters the request using two query parameters: `ownerCode` and `type`
+- Runs in silent mode using the `-s` flag (no progress or error output)
+
+#### Docker App Instance
 
 For running on the local machine, to access docker app instance, use the following command, settings.
 
 > ./curl_minsight.sh $edgeTokenDocker
 
-> CURLCMD="curl -s -H 'Authorization: Bearer $TOKEN' -H 'Content-Type: application/json' -X GET http://172.25.1.251:7083/4316d7b8-f114-4b5a-80d2-28b364b666a7/minsight/v1/nodes?ownerCode=626393e7-b6b2-4a72-893c-5da07b554250&type=network"
+Above command will internally call `curl` with the following options.
+
+```bash
+curl -s -H 'Authorization: Bearer $edgeTokenDocker' -H 'Content-Type: application/json' -X GET http://172.25.1.251:7083/4316d7b8-f114-4b5a-80d2-28b364b666a7/minsight/v1/nodes?ownerCode=626393e7-b6b2-4a72-893c-5da07b554250&type=network"
+```
+
+- Sends an HTTP `GET` request to an API endpoint
+- Uses a bearer token for authorization (`Authorization: Bearer $edgeTokenDocker`)
+- Sets the content type to `application/json` via headers
+- Targets a specific IP address and port (`172.25.1.251:7083`)
+- Accesses the resource at `/minsight/v1/nodes`
+- Filters the request using two query parameters: `ownerCode` and `type`
+- Runs in silent mode using the `-s` flag (no progress or error output)
 
 > **Note** edgeTokenLocal and edgeTokenDocker are respective edge tokens for mimOE app instances on local machine and docker container
